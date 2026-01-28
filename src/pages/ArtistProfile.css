@@ -1,0 +1,198 @@
+.profile-hero {
+    position: relative;
+    height: 80vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    margin-bottom: var(--spacing-xl);
+    background: var(--color-bg-primary);
+}
+
+.hero-split-image {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    mask-image: linear-gradient(to right, transparent, black 40%);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 40%);
+}
+
+.hero-overlay-artistic {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 30% 50%, transparent, var(--color-bg-primary) 70%);
+}
+
+.hero-split-content {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+}
+
+.hero-quote-block {
+    margin-top: 3rem;
+    max-width: 500px;
+    border-left: 3px solid var(--color-primary);
+    padding-left: 2rem;
+}
+
+.hero-quote-block blockquote {
+    font-size: 1.8rem;
+    font-style: italic;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+}
+
+.profile-narrative {
+    padding-bottom: var(--spacing-xl);
+}
+
+.narrative-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 4rem;
+}
+
+.bio-column h2 {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+    color: var(--color-primary);
+}
+
+.dropcap-bio::first-letter {
+    float: left;
+    font-size: 5rem;
+    line-height: 1;
+    font-family: var(--font-serif);
+    color: var(--color-secondary);
+    margin-right: 0.5rem;
+    margin-top: 0.2rem;
+}
+
+.bio-text-rich p {
+    font-size: 1.1rem;
+    line-height: 2;
+    color: var(--color-text-primary);
+}
+
+.milestones-column {
+    padding: 2.5rem;
+    border-radius: 20px;
+}
+
+.milestone-list {
+    list-style: none;
+    margin: 2rem 0;
+}
+
+.milestone-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.milestone-dot {
+    width: 10px;
+    height: 10px;
+    background: var(--color-primary);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--color-glow);
+}
+
+.specialty-box {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.specialty-box label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2rem;
+    color: var(--color-text-secondary);
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.specialty-box p {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.artist-universe {
+    margin-bottom: var(--spacing-xl);
+}
+
+.section-header-mini {
+    margin-bottom: var(--spacing-md);
+}
+
+.section-header-mini h2 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.artwork-card-mini {
+    display: block;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: var(--transition-smooth);
+}
+
+.artwork-card-mini img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+}
+
+.mini-info {
+    padding: 1rem;
+}
+
+.mini-info h4 {
+    margin-bottom: 0.3rem;
+}
+
+.mini-info p {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+}
+
+.artwork-card-mini:hover {
+    transform: translateY(-8px);
+    border-color: var(--color-primary);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.latest-realizations {
+    padding: var(--spacing-lg);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.realizations-placeholder {
+    margin-top: 2rem;
+    padding: 3rem;
+    border: 1px dashed var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+@media (max-width: 968px) {
+    .profile-header {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .profile-portrait-section {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+}

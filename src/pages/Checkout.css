@@ -1,0 +1,117 @@
+.checkout-page {
+    padding-top: var(--spacing-xl);
+    min-height: 100vh;
+}
+
+.checkout-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-md);
+}
+
+.checkout-form,
+.order-summary {
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-border);
+}
+
+.form-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.form-section h3 {
+    font-size: 1.2rem;
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-gold-muted);
+}
+
+.input-group {
+    display: grid;
+    gap: 15px;
+}
+
+.input-group input {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    padding: 12px;
+    color: white;
+    border-radius: 4px;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.payment-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.payment-pill {
+    padding: 15px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: var(--transition-smooth);
+}
+
+.payment-pill.active {
+    border-color: var(--color-fire-glow);
+    background: rgba(216, 67, 21, 0.1);
+}
+
+.payment-pill input {
+    display: none;
+}
+
+.mobile-money-info {
+    margin-top: 15px;
+    padding: 15px;
+    border-left: 2px solid var(--color-gold-muted);
+    background: rgba(175, 156, 115, 0.05);
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--color-border);
+    font-size: 1.5rem;
+}
+
+.trust-info {
+    margin-top: var(--spacing-md);
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+}
+
+.trust-info p {
+    margin-bottom: 8px;
+}
+
+.mt-lg {
+    margin-top: 30px;
+}
+
+@media (max-width: 968px) {
+    .checkout-grid {
+        grid-template-columns: 1fr;
+    }
+}
