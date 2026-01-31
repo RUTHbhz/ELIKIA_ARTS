@@ -122,7 +122,7 @@ const Home = () => {
                     </div>
 
                     <div className="manifesto-image-container">
-                        <img src="/src/assets/images/art3.jpeg" alt="Atelier Elikia" />
+                        <img src="/assets/images/art3.jpeg" alt="Atelier Elikia" />
                     </div>
                 </div>
             </section>
