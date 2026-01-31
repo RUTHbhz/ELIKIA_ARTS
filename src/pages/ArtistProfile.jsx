@@ -15,18 +15,32 @@ const ArtistProfile = () => {
     if (!artist) return <div className="container">Artiste non trouvé.</div>;
 
     return (
-        <div className="artist-profile-page animate-fade">
-            <header className="profile-hero">
-                <div className="hero-split-image" style={{ backgroundImage: `url(${artist.portrait})` }}>
-                    <div className="hero-overlay-artistic"></div>
+        <div className="artist-profile-page">
+            <header className="profile-header container">
+                <div className="header-visual">
+                    <div className="profile-portrait-container">
+                        <img src={artist.portrait} alt={artist.name} />
+                        <div className="portrait-plate">
+                            <span className="plate-id">{artist.id}</span>
+                            <span className="plate-tag">ARTISTE_COLLECTION_2024</span>
+                        </div>
+                    </div>
                 </div>
-                <div className="hero-split-content container">
-                    <span className="artist-role-tag vibrate-glow">{artist.role}</span>
-                    <h1 className="serif light-text">{artist.name}</h1>
-                    <div className="hero-quote-block">
+                <div className="header-info">
+                    <div className="header-meta">
+                        <span className="artist-role-tag">{artist.role}</span>
+                        <div className="origin-label">GOMA_KIVU_DRC</div>
+                    </div>
+                    <h1 className="serif">{artist.name}</h1>
+                    <div className="header-quote">
                         <blockquote className="serif">
-                            "L'art ne reproduit pas le visible, il rend visible l'invisible."
+                            "{artist.vision || "L'art est la pulsation de notre résilience au Kivu."}"
                         </blockquote>
+                    </div>
+                    <div className="header-badges">
+                        {artist.achievements.map((a, i) => (
+                            <span key={i} className="achievement-badge">{a}</span>
+                        ))}
                     </div>
                 </div>
             </header>

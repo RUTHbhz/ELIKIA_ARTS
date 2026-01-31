@@ -2,40 +2,99 @@ import { Link } from 'react-router-dom';
 import Events from '../components/sections/Events';
 import ContactSection from '../components/sections/ContactSection';
 import { artworks, stories } from '../data/mockData';
+import { motion } from 'framer-motion';
+import { Palette, Share2, Compass, MoveDown, Plus } from 'lucide-react';
 import './Home.css';
 
 const Home = () => {
+    // Animation variants
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.2, delayChildren: 0.3 }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 30 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 1.2, cubicBezier: [0.2, 1, 0.3, 1] }
+        }
+    };
+
     const heroArt = artworks[0];
     const previewArtworks = artworks.slice(0, 3);
     const previewStories = stories.slice(0, 2);
 
     return (
-        <div className="home-page" id="home">
+        <main className="home-page" id="home">
             {/* Hero Section */}
             <section className="hero">
-                <div className="hero-bg">
-                    <img src={heroArt.image} alt="Featured Artwork" className="hero-image" />
+                <div className="hero-image-wrap">
+                    <img
+                        src={heroArt.image}
+                        alt={heroArt.title}
+                        className="hero-image"
+                    />
                     <div className="hero-overlay"></div>
+
+                    {/* Decorative Artistic Elements */}
+                    <div className="hero-decor-grid"></div>
+                    <div className="hero-marker tm"></div>
+                    <div className="hero-marker tr"></div>
+                    <div className="hero-marker bl"></div>
                 </div>
 
-                <div className="hero-content">
-                    <h1 className="hero-title serif light-text">
-                        Elikia Art — <br />
-                        <span>Peindre la résilience, raconter le monde.</span>
-                    </h1>
-                    <p className="hero-subtitle">
-                        Un collectif d'artistes peintres du Kivu explorant la liberté et la mémoire à travers le prisme de l'art plastique.
-                    </p>
-                    <div className="hero-cta">
-                        <Link to="/gallery" className="btn btn-primary">Explorer les œuvres</Link>
-                        <Link to="/artists" className="btn btn-secondary">Découvrir les artistes</Link>
-                    </div>
+                <div className="hero-coordinates">
+                    <span className="coord-point">2.5027° S</span>
+                    <span className="coord-divider">/</span>
+                    <span className="coord-point">29.1849° E</span>
                 </div>
 
-                <div className="scroll-indicator">
-                    <span>Défiler</span>
-                    <div className="line"></div>
+                <div className="container hero-editorial-grid">
+                    <motion.div
+                        className="hero-main-content"
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        <motion.div variants={itemVariants} className="hero-tag">
+                            <Compass size={14} className="icon-vibrate" />
+                            <span>COLLECTIF_ARTISTE_KIVU</span>
+                        </motion.div>
+
+                        <motion.h1 variants={itemVariants} className="hero-title serif">
+                            Vibrations <span className="split-reveal">d'Espoir</span>
+                        </motion.h1>
+
+                        <motion.p variants={itemVariants} className="hero-subtitle">
+                            Un collectif d'artistes peintres du Kivu explorant la liberté et la mémoire à travers le prisme de l'art plastique.
+                        </motion.p>
+
+                        <motion.div variants={itemVariants} className="hero-cta">
+                            <Link to="/gallery" className="btn-luxury-primary">
+                                <span>Explorer l'Exposition</span>
+                                <div className="btn-glow"></div>
+                            </Link>
+                            <Link to="/artists" className="btn-luxury-secondary">
+                                <span>Découvrir les Artistes</span>
+                                <div className="btn-glow"></div>
+                            </Link>
+                        </motion.div>
+                    </motion.div>
                 </div>
+
+                <motion.div
+                    className="scroll-indicator-minimal"
+                    initial={{ scaleY: 0, opacity: 0 }}
+                    animate={{ scaleY: 1, opacity: 1 }}
+                    transition={{ delay: 2, duration: 1.5 }}
+                >
+                    <div className="scroll-line"></div>
+                </motion.div>
             </section>
 
             {/* History & Manifesto Section */}
@@ -47,21 +106,23 @@ const Home = () => {
                             Né de la volonté de transformer la douleur en couleur, le collectif Elikia Art est un cri de vie au cœur du Kivu.
                         </p>
                         <p>
-                            Depuis sa création, notre collectif s'est donné pour mission de documenter la résilience d'un peuple. La peinture n'est pas qu'une esthétique; c'est un acte de résistance, un témoignage de dignité et une exploration profonde de notre mémoire collective.
+                            Depuis sa création, notre collectif s'est donné pour mission de documenter la résilience d'un peuple. La peinture n'est pas qu'une esthétique; c'est un acte de résistance.
                         </p>
-                        <p>
-                            Originaire de Goma, Elikia (Espoir en Lingala) transcende les crises pour offrir une vision vibrante et résolument tournée vers l'avenir. Chaque œuvre est une archive vivante, chaque vibration un pont vers la paix.
-                        </p>
+
+                        <div className="manifesto-stats">
+                            <div className="stat-item">
+                                <span className="serif">17+</span>
+                                <p>Œuvres Uniques</p>
+                            </div>
+                            <div className="stat-item">
+                                <span className="serif">2024</span>
+                                <p>Année de Vibration</p>
+                            </div>
+                        </div>
                     </div>
-                    <div className="manifesto-stats">
-                        <div className="stat-item">
-                            <span className="serif">17+</span>
-                            <p>Œuvres Uniques</p>
-                        </div>
-                        <div className="stat-item">
-                            <span className="serif">2024</span>
-                            <p>Année de Vibration</p>
-                        </div>
+
+                    <div className="manifesto-image-container">
+                        <img src="/src/assets/images/art3.jpeg" alt="Atelier Elikia" />
                     </div>
                 </div>
             </section>
@@ -124,7 +185,7 @@ const Home = () => {
 
             {/* Contact Section */}
             <ContactSection />
-        </div>
+        </main>
     );
 };
 
