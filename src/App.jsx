@@ -13,7 +13,9 @@ import Contact from './pages/Contact';
 import FullGallery from './pages/FullGallery';
 import ArtistProfile from './pages/ArtistProfile';
 import JournalDetail from './pages/JournalDetail';
+import Profile from './pages/Profile';
 import Footer from './components/layout/Footer';
+import CartDrawer from './components/cart/CartDrawer';
 import './index.css';
 
 function App() {
@@ -23,6 +25,7 @@ function App() {
         <Router>
           <div className="app-container">
             <Navbar />
+            <CartDrawer />
             <main className="content">
               <Routes>
                 <Route path="/" element={<Home />} />
@@ -32,6 +35,7 @@ function App() {
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/profile" element={<Profile />} />
                 <Route path="/artist/:id" element={<ArtistProfile />} />
                 <Route path="/journal" element={<Journal />} />
                 <Route path="/journal/:id" element={<JournalDetail />} />

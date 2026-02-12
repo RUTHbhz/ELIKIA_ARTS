@@ -7,7 +7,7 @@ import logo from '../../assets/images/logo.jpeg';
 import './Navbar.css';
 
 const Navbar = () => {
-    const { cartCount } = useCart();
+    const { cartCount, setIsCartOpen } = useCart();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     return (
@@ -28,7 +28,7 @@ const Navbar = () => {
 
                 <div className="nav-actions">
                     <ThemeToggle />
-                    <button className="cart-icon">
+                    <button className="cart-icon" onClick={() => setIsCartOpen(true)}>
                         <ShoppingBag size={22} />
                         {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
                     </button>
