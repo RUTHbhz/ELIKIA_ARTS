@@ -1,7 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { seedDatabase } from '../utils/seedDatabase';
 import './Admin.css';
 
 const Admin = () => {
+    const [isSeeding, setIsSeeding] = useState(false);
+
+    const handleSeedDatabase = async () => {
+        if (window.confirm('Voulez-vous vraiment initialiser la base de données avec les données de test ?')) {
+            setIsSeeding(true);
+            const result = await seedDatabase();
+            alert(result.message);
+            setIsSeeding(false);
+        }
+    };
+
     return (
         <div className="admin-page container">
             <h2 className="serif">Tableau de Bord Admin</h2>
@@ -18,8 +30,20 @@ const Admin = () => {
 
                 <main className="admin-main glass">
                     <header className="admin-content-header">
-                        <h3>Catalogue des Œuvres</h3>
-                        <button className="btn btn-primary">+ Ajouter une œuvre</button>
+                        <div>
+                            <h3>Catalogue des Œuvres</h3>
+                            <p className="subtitle">Gérez vos collections et inventaire</p>
+                        </div>
+                        <div className="admin-actions">
+                            <button
+                                className="btn btn-secondary"
+                                onClick={handleSeedDatabase}
+                                disabled={isSeeding}
+                            >
+                                {isSeeding ? 'Initialisation...' : '🔄 Initialiser BDD'}
+                            </button>
+                            <button className="btn btn-primary">+ Ajouter une œuvre</button>
+                        </div>
                     </header>
 
                     <table className="admin-table">

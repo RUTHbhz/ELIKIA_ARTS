@@ -1,4 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import {
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged,
+    updateProfile
+} from 'firebase/auth';
+import { auth } from '../config/firebase';
 
 const AuthContext = createContext();
 
@@ -9,59 +17,31 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Check for saved user in localStorage on mount
-        const savedUser = localStorage.getItem('elikia_user');
-        if (savedUser) {
-            setCurrentUser(JSON.parse(savedUser));
-        }
-        setLoading(false);
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setCurrentUser(user);
+            setLoading(false);
+        });
+
+        return unsubscribe;
     }, []);
 
     const login = (email, password) => {
-        // Mock login - in a real app, this would hit an API
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (email && password) {
-                    const user = {
-                        id: 'user-123',
-                        name: email.split('@')[0],
-                        email: email,
-                        avatar: null
-                    };
-                    setCurrentUser(user);
-                    localStorage.setItem('elikia_user', JSON.stringify(user));
-                    resolve(user);
-                } else {
-                    reject(new Error("Email et mot de passe requis"));
-                }
-            }, 1000);
-        });
+        return signInWithEmailAndPassword(auth, email, password);
     };
 
-    const signup = (name, email, password) => {
-        // Mock signup
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (name && email && password) {
-                    const user = {
-                        id: 'user-' + Date.now(),
-                        name: name,
-                        email: email,
-                        avatar: null
-                    };
-                    setCurrentUser(user);
-                    localStorage.setItem('elikia_user', JSON.stringify(user));
-                    resolve(user);
-                } else {
-                    reject(new Error("Tous les champs sont requis"));
-                }
-            }, 1000);
+    const signup = async (name, email, password) => {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // Mettre à jour le profil avec le nom
+        await updateProfile(userCredential.user, {
+            displayName: name
         });
+        // Force refresh user to get displayName
+        setCurrentUser({ ...userCredential.user, displayName: name });
+        return userCredential;
     };
 
     const logout = () => {
-        setCurrentUser(null);
-        localStorage.removeItem('elikia_user');
+        return signOut(auth);
     };
 
     return (
