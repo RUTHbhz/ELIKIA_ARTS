@@ -70,8 +70,8 @@
 .cart-icon {
     background: none;
     border: none;
-    color: var(--color-text-primary);
     cursor: pointer;
+    color: var(--color-text-primary);
     position: relative;
     display: flex;
     align-items: center;
@@ -79,9 +79,33 @@
     transition: var(--transition-smooth);
 }
 
-.cart-icon:hover {
+.cart-icon:hover,
+.user-icon:hover {
     color: var(--color-primary);
     transform: scale(1.1);
+}
+
+.user-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-primary);
+    transition: var(--transition-smooth);
+}
+
+.btn-login-nav {
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.btn-login-nav:hover {
+    background: rgba(var(--color-primary-rgb), 0.1);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
 }
 
 .cart-count {

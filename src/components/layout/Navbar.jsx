@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, ShoppingBag } from 'lucide-react';
+import { Menu, X, ShoppingBag, User } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import ThemeToggle from '../ui/ThemeToggle';
 import logo from '../../assets/images/logo.jpeg';
 import './Navbar.css';
 
 const Navbar = () => {
     const { cartCount, setIsCartOpen } = useCart();
+    const { currentUser } = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     return (
@@ -28,6 +30,17 @@ const Navbar = () => {
 
                 <div className="nav-actions">
                     <ThemeToggle />
+
+                    {currentUser ? (
+                        <Link to="/profile" className="user-icon" aria-label="Mon Profil">
+                            <User size={22} />
+                        </Link>
+                    ) : (
+                        <Link to="/login" className="btn-login-nav">
+                            Connexion
+                        </Link>
+                    )}
+
                     <button className="cart-icon" onClick={() => setIsCartOpen(true)}>
                         <ShoppingBag size={22} />
                         {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
