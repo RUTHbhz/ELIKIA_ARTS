@@ -9,7 +9,7 @@ import './Navbar.css';
 
 const Navbar = () => {
     const { cartCount, setIsCartOpen } = useCart();
-    const { currentUser } = useAuth();
+    const { currentUser, logout } = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     return (
@@ -21,30 +21,47 @@ const Navbar = () => {
                 </div>
 
                 <div className={`nav-links ${isMenuOpen ? 'mobile-open' : ''}`}>
-                    <Link to="/" onClick={() => setIsMenuOpen(false)}>Accueil</Link>
-                    <Link to="/gallery" onClick={() => setIsMenuOpen(false)}>Galerie</Link>
-                    <Link to="/artists" onClick={() => setIsMenuOpen(false)}>Artistes</Link>
-                    <Link to="/journal" onClick={() => setIsMenuOpen(false)}>Histoires</Link>
-                    <Link to="/contact" onClick={() => setIsMenuOpen(false)}>Contact</Link>
+                    {currentUser?.role === 'admin' ? (
+                        <>
+                            <Link to="/admin" onClick={() => setIsMenuOpen(false)}>Dashboard Admin</Link>
+                            <Link to="/admin" onClick={() => setIsMenuOpen(false)}>Gestion BDD</Link>
+                        </>
+                    ) : (
+                        <>
+                            <Link to="/" onClick={() => setIsMenuOpen(false)}>Accueil</Link>
+                            <Link to="/gallery" onClick={() => setIsMenuOpen(false)}>Galerie</Link>
+                            <Link to="/artists" onClick={() => setIsMenuOpen(false)}>Artistes</Link>
+                            <Link to="/journal" onClick={() => setIsMenuOpen(false)}>Histoires</Link>
+                            <Link to="/contact" onClick={() => setIsMenuOpen(false)}>Contact</Link>
+                        </>
+                    )}
                 </div>
 
                 <div className="nav-actions">
                     <ThemeToggle />
 
                     {currentUser ? (
-                        <Link to="/profile" className="user-icon" aria-label="Mon Profil">
-                            <User size={22} />
-                        </Link>
+                        currentUser.role === 'admin' ? (
+                            <button onClick={() => { logout(); setIsMenuOpen(false); }} className="btn-logout-nav">
+                                Déconnexion
+                            </button>
+                        ) : (
+                            <Link to="/profile" className="user-icon" aria-label="Mon Profil">
+                                <User size={22} />
+                            </Link>
+                        )
                     ) : (
                         <Link to="/login" className="btn-login-nav">
                             Connexion
                         </Link>
                     )}
 
-                    <button className="cart-icon" onClick={() => setIsCartOpen(true)}>
-                        <ShoppingBag size={22} />
-                        {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
-                    </button>
+                    {currentUser?.role !== 'admin' && (
+                        <button className="cart-icon" onClick={() => setIsCartOpen(true)}>
+                            <ShoppingBag size={22} />
+                            {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
+                        </button>
+                    )}
                     <button
                         className="mobile-toggle"
                         onClick={() => setIsMenuOpen(!isMenuOpen)}

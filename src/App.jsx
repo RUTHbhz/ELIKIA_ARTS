@@ -49,6 +49,20 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
+// Component to prevent admins from accessing public pages
+const AdminExclusiveRoute = ({ children }) => {
+  const { currentUser, loading } = useAuth();
+
+  if (loading) return null;
+
+  // If user is admin, redirect them to admin space
+  if (currentUser && currentUser.role === 'admin') {
+    return <Navigate to="/admin" replace />;
+  }
+
+  return children;
+};
+
 function App() {
   return (
     <ThemeProvider>
@@ -60,10 +74,10 @@ function App() {
               <CartDrawer />
               <main className="content">
                 <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/gallery" element={<FullGallery />} />
-                  <Route path="/artwork/:id" element={<ArtworkDetail />} />
-                  <Route path="/artists" element={<Artists />} />
+                  <Route path="/" element={<AdminExclusiveRoute><Home /></AdminExclusiveRoute>} />
+                  <Route path="/gallery" element={<AdminExclusiveRoute><FullGallery /></AdminExclusiveRoute>} />
+                  <Route path="/artwork/:id" element={<AdminExclusiveRoute><ArtworkDetail /></AdminExclusiveRoute>} />
+                  <Route path="/artists" element={<AdminExclusiveRoute><Artists /></AdminExclusiveRoute>} />
                   <Route
                     path="/checkout"
                     element={
@@ -80,20 +94,22 @@ function App() {
                       </AdminRoute>
                     }
                   />
-                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/contact" element={<AdminExclusiveRoute><Contact /></AdminExclusiveRoute>} />
                   <Route
                     path="/profile"
                     element={
                       <ProtectedRoute>
-                        <Profile />
+                        <AdminExclusiveRoute>
+                          <Profile />
+                        </AdminExclusiveRoute>
                       </ProtectedRoute>
                     }
                   />
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<Signup />} />
-                  <Route path="/artist/:id" element={<ArtistProfile />} />
-                  <Route path="/journal" element={<Journal />} />
-                  <Route path="/journal/:id" element={<JournalDetail />} />
+                  <Route path="/artist/:id" element={<AdminExclusiveRoute><ArtistProfile /></AdminExclusiveRoute>} />
+                  <Route path="/journal" element={<AdminExclusiveRoute><Journal /></AdminExclusiveRoute>} />
+                  <Route path="/journal/:id" element={<AdminExclusiveRoute><JournalDetail /></AdminExclusiveRoute>} />
                 </Routes>
               </main>
               <Footer />
