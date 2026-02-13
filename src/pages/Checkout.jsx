@@ -98,10 +98,24 @@ const Checkout = () => {
         return (
             <div className="checkout-page container animate-fade">
                 <div className="success-message glass">
+                    <CheckCircle2 size={64} className="text-primary mb-md" />
                     <h2 className="serif">Merci pour votre commande !</h2>
-                    <p>Un email de confirmation a été envoyé à votre adresse.</p>
+                    <div className="notification-status mb-md">
+                        {paymentMethod === 'card' ? (
+                            <p className="flex-center gap-sm">
+                                📩 <strong>Email de confirmation envoyé</strong> à {currentUser?.email || 'votre adresse'}.
+                            </p>
+                        ) : (
+                            <p className="flex-center gap-sm">
+                                📱 <strong>SMS de confirmation envoyé</strong> au {phone}.
+                            </p>
+                        )}
+                    </div>
                     <p>Votre commande est en cours de préparation par nos artistes.</p>
-                    <Link to="/gallery" className="btn btn-primary mt-lg">Continuer l'exploration</Link>
+                    <div className="order-actions mt-lg">
+                        <Link to="/gallery" className="btn btn-outline">Continuer l'exploration</Link>
+                        <Link to="/tracking" className="btn btn-primary">Suivre ma commande</Link>
+                    </div>
                 </div>
             </div>
         );
