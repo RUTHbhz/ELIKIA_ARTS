@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
-import { artworks } from '../data/mockData';
+import { motion } from 'framer-motion';
+import { Search, Filter, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { artworks as localArtworks } from '../data/mockData';
+import { useFirestoreConfig } from '../hooks/useFirestore';
 import './Gallery.css'; // Reuse gallery styles
 
 const FullGallery = () => {
-    const [filter, setFilter] = useState('all');
-    const themes = ['all', 'Resilience', 'Liberté', 'Identité', 'Exploration'];
+    const { data: dbArtworks, loading } = useFirestoreConfig('artworks');
+    const artworks = dbArtworks && dbArtworks.length > 0 ? dbArtworks : localArtworks;
 
-    const filteredArt = filter === 'all'
+    const [filter, setFilter] = useState('Tous');
+    const [searchTerm, setSearchTerm] = useState('');
+    const themes = ['Tous', 'Resilience', 'Liberté', 'Identité', 'Exploration'];
+
+    const filteredArt = filter === 'Tous'
         ? artworks
         : artworks.filter(art => art.theme === filter);
 
@@ -30,28 +37,34 @@ const FullGallery = () => {
                 </div>
             </header>
 
-            <div className="artwork-grid">
-                {filteredArt.map(art => (
-                    <div key={art.id} className="artwork-card">
-                        <div className="artwork-image-wrapper">
-                            <img src={art.image} alt={art.title} loading="lazy" />
-                            <div className="artwork-overlay">
-                                <Link to={`/artwork/${art.id}`}>
-                                    <button className="btn-view">Contempler</button>
-                                </Link>
+            {loading ? (
+                <div className="container text-center py-5">
+                    <p className="text-xl">Chargement de la galerie...</p>
+                </div>
+            ) : (
+                <div className="artwork-grid">
+                    {filteredArt.map(art => (
+                        <div key={art.id} className="artwork-card">
+                            <div className="artwork-image-wrapper">
+                                <img src={art.image} alt={art.title} loading="lazy" />
+                                <div className="artwork-overlay">
+                                    <Link to={`/artwork/${art.id}`}>
+                                        <button className="btn-view">Contempler</button>
+                                    </Link>
+                                </div>
+                            </div>
+                            <div className="artwork-info">
+                                <p className="artist-name">{art.artist}</p>
+                                <h3>{art.title}</h3>
+                                <div className="artwork-meta">
+                                    <span>{art.technique}</span>
+                                    <span className="price">{art.price} $</span>
+                                </div>
                             </div>
                         </div>
-                        <div className="artwork-info">
-                            <p className="artist-name">{art.artist}</p>
-                            <h3>{art.title}</h3>
-                            <div className="artwork-meta">
-                                <span>{art.technique}</span>
-                                <span className="price">{art.price} $</span>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

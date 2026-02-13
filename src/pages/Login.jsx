@@ -21,9 +21,22 @@ const Login = () => {
         setLoading(true);
 
         try {
-            await login(email, password);
-            navigate(from, { replace: true });
+            const userCredential = await login(email, password);
+            console.log("Login successful, checking role...");
+
+            // We need to wait a tiny bit for AuthContext to update current user with doc data
+            // Or we check manually here to be faster for redirection
+            const { doc, getDoc } = await import('firebase/firestore');
+            const { db } = await import('../config/firebase');
+            const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+
+            if (userDoc.exists() && userDoc.data().role === 'admin') {
+                navigate('/admin', { replace: true });
+            } else {
+                navigate(from, { replace: true });
+            }
         } catch (err) {
+            console.error("Login error:", err);
             setError('Échec de la connexion. Vérifiez vos identifiants.');
         }
 

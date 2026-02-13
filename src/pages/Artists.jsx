@@ -1,11 +1,15 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Users, UserCircle } from 'lucide-react';
-import { artists } from '../data/mockData';
+import { ArrowRight, Instagram, Globe } from 'lucide-react';
+import { artists as localArtists } from '../data/mockData';
+import { useFirestoreConfig } from '../hooks/useFirestore';
 import './Artists.css';
 
 const Artists = () => {
-    // Animation Variants
+    const { data: dbArtists, loading } = useFirestoreConfig('artists');
+    const artists = dbArtists && dbArtists.length > 0 ? dbArtists : localArtists;
+
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -15,29 +19,27 @@ const Artists = () => {
     };
 
     const cardVariants = {
-        hidden: { opacity: 0, x: -30 },
+        hidden: { opacity: 0, y: 30 },
         visible: {
             opacity: 1,
-            x: 0,
-            transition: { duration: 0.8, cubicBezier: [0.2, 1, 0.3, 1] }
+            y: 0,
+            transition: { duration: 0.8, ease: "easeOut" }
         }
     };
 
     return (
-        <main className="artists-page container" id="artists">
-            <motion.header
-                className="artists-header"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1 }}
-            >
-                <div className="header-badge">
-                    <Users size={14} />
-                    <span>ARTISTES_COLLECTIF</span>
-                </div>
-                <h2 className="serif">Les Artistes</h2>
-                <p>Découvrez les voix et les mains derrière le collectif Elikia Art.</p>
-            </motion.header>
+        <main className="artists-page container">
+            <header className="artists-header">
+                <motion.h1
+                    className="serif"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8 }}
+                >
+                    Les Créateurs de <span className="highlight-text">Vibrations</span>
+                </motion.h1>
+                <p>Rencontrez les voix singulières qui composent le collectif Elikia Art.</p>
+            </header>
 
             <motion.div
                 className="artists-grid"
@@ -45,48 +47,56 @@ const Artists = () => {
                 initial="hidden"
                 animate="visible"
             >
-                {artists.map((artist, index) => (
-                    <motion.div
-                        key={artist.id}
-                        className="artist-identity-card"
-                        variants={cardVariants}
-                        whileHover={{ x: 10 }}
-                    >
-                        <div className="card-header">
-                            <span className="cat-no">INV_{index + 101}</span>
-                            <span className="cat-label">COLLECTION_ELIKIA // 2024</span>
-                        </div>
-
-                        <div className="card-visual">
-                            <div className="portrait-frame">
-                                <img src={artist.portrait} alt={artist.name} />
-                                <div className="frame-glow"></div>
-                            </div>
-                            <div className="artist-meta">
-                                <div className="meta-item">
-                                    <label>Origine</label>
-                                    <span>Goma, Kivu</span>
+                {loading ? (
+                    <div className="text-center w-full col-span-3">
+                        <p>Chargement des artistes...</p>
+                    </div>
+                ) : (
+                    artists.map((artist) => (
+                        <motion.article
+                            key={artist.id}
+                            className="artist-card-pro glass"
+                            variants={cardVariants}
+                            whileHover={{ y: -10 }}
+                        >
+                            <div className="card-visual">
+                                <div className="portrait-frame">
+                                    <img src={artist.portrait} alt={artist.name} />
                                 </div>
-                                <div className="meta-item">
-                                    <label>Médium</label>
-                                    <span>{artist.specialty}</span>
+                                <div className="card-overlay"></div>
+                            </div>
+
+                            <div className="card-content">
+                                <div className="artist-identity">
+                                    <h2 className="serif">{artist.name}</h2>
+                                    <span className="artist-role">{artist.role}</span>
+                                </div>
+
+                                <p className="artist-bio-short">
+                                    {artist.bio ? artist.bio.substring(0, 100) : ''}...
+                                </p>
+
+                                <div className="artist-meta">
+                                    <div className="meta-item">
+                                        <span className="label">Spécialité</span>
+                                        <span className="value">{artist.specialty}</span>
+                                    </div>
+                                </div>
+
+                                <div className="card-actions">
+                                    <Link to={`/artist/${artist.id}`} className="btn-discover">
+                                        <span>Voir le Profil</span>
+                                        <ArrowRight size={16} />
+                                    </Link>
+                                    <div className="social-links">
+                                        <button className="social-btn"><Instagram size={18} /></button>
+                                        <button className="social-btn"><Globe size={18} /></button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div className="card-body">
-                            <h3 className="serif">{artist.name}</h3>
-                            <div className="role-chip">{artist.role}</div>
-                            <p className="artist-vision">{artist.bio.substring(0, 110)}...</p>
-
-                            <div className="card-footer">
-                                <Link to={`/artist/${artist.id}`} className="btn-museum-link">
-                                    Archive Complète <span>→</span>
-                                </Link>
-                            </div>
-                        </div>
-                    </motion.div>
-                ))}
+                        </motion.article>
+                    ))
+                )}
             </motion.div>
         </main>
     );

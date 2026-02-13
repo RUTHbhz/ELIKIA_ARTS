@@ -23,11 +23,27 @@ import './index.css';
 
 // Component to protect routes
 const ProtectedRoute = ({ children }) => {
-  const { currentUser } = useAuth();
+  const { currentUser, loading } = useAuth();
   const location = useLocation();
+
+  if (loading) return null;
 
   if (!currentUser) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+};
+
+// Component to protect admin routes
+const AdminRoute = ({ children }) => {
+  const { currentUser, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) return null;
+
+  if (!currentUser || currentUser.role !== 'admin') {
+    return <Navigate to="/" replace />;
   }
 
   return children;
@@ -56,7 +72,14 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
-                  <Route path="/admin" element={<Admin />} />
+                  <Route
+                    path="/admin"
+                    element={
+                      <AdminRoute>
+                        <Admin />
+                      </AdminRoute>
+                    }
+                  />
                   <Route path="/contact" element={<Contact />} />
                   <Route
                     path="/profile"

@@ -1,12 +1,27 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Compass, MoveDown } from 'lucide-react';
 import Events from '../components/sections/Events';
 import ContactSection from '../components/sections/ContactSection';
-import { artworks, stories } from '../data/mockData';
-import { motion } from 'framer-motion';
-import { Palette, Share2, Compass, MoveDown, Plus } from 'lucide-react';
+import { useFirestoreConfig } from '../hooks/useFirestore';
+import { artworks as localArtworks, stories as localStories } from '../data/mockData';
 import './Home.css';
 
 const Home = () => {
+    // Fetch data from Firestore
+    const { data: dbArtworks, loading: loadingArtworks } = useFirestoreConfig('artworks');
+    const { data: dbStories, loading: loadingStories } = useFirestoreConfig('journal');
+
+    // Use Firestore if data exists, otherwise fallback to local mockData
+    const artworks = dbArtworks && dbArtworks.length > 0 ? dbArtworks : localArtworks;
+    const stories = dbStories && dbStories.length > 0 ? dbStories : localStories;
+
+    // Derived state
+    const featuredArtworks = artworks.slice(0, 3);
+    const heroArt = artworks.length > 0 ? artworks[0] : null;
+    const recentStories = stories.slice(0, 2);
+
     // Animation variants
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -25,20 +40,22 @@ const Home = () => {
         }
     };
 
-    const heroArt = artworks[0];
-    const previewArtworks = artworks.slice(0, 3);
-    const previewStories = stories.slice(0, 2);
-
     return (
         <main className="home-page" id="home">
             {/* Hero Section */}
             <section className="hero">
                 <div className="hero-image-wrap">
-                    <img
-                        src={heroArt.image}
-                        alt={heroArt.title}
-                        className="hero-image"
-                    />
+                    {loadingArtworks ? (
+                        <div className="hero-placeholder animate-pulse"></div>
+                    ) : (
+                        heroArt && (
+                            <img
+                                src={heroArt.image}
+                                alt={heroArt.title}
+                                className="hero-image"
+                            />
+                        )
+                    )}
                     <div className="hero-overlay"></div>
 
                     {/* Decorative Artistic Elements */}
@@ -134,20 +151,24 @@ const Home = () => {
                     <p>Une sélection de nos vibrations les plus récentes.</p>
                 </header>
                 <div className="artwork-grid">
-                    {previewArtworks.map(art => (
-                        <div key={art.id} className="artwork-card glass animate-fade">
-                            <div className="artwork-image-wrapper">
-                                <img src={art.image} alt={art.title} />
-                                <div className="artwork-overlay">
-                                    <Link to={`/artwork/${art.id}`} className="btn-view">Contempler</Link>
+                    {loadingArtworks ? (
+                        <p>Chargement des œuvres...</p>
+                    ) : (
+                        featuredArtworks.map(art => (
+                            <div key={art.id} className="artwork-card glass animate-fade">
+                                <div className="artwork-image-wrapper">
+                                    <img src={art.image} alt={art.title} />
+                                    <div className="artwork-overlay">
+                                        <Link to={`/artwork/${art.id}`} className="btn-view">Contempler</Link>
+                                    </div>
+                                </div>
+                                <div className="artwork-info">
+                                    <p className="artist-name">{art.artist}</p>
+                                    <h3>{art.title}</h3>
                                 </div>
                             </div>
-                            <div className="artwork-info">
-                                <p className="artist-name">{art.artist}</p>
-                                <h3>{art.title}</h3>
-                            </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
                 <div className="section-footer">
                     <Link to="/gallery" className="btn btn-secondary vibrate-glow">Voir toutes les œuvres</Link>
@@ -164,19 +185,23 @@ const Home = () => {
                     <p>Le journal de bord de notre voyage artistique.</p>
                 </header>
                 <div className="stories-grid-mini">
-                    {previewStories.map(story => (
-                        <article key={story.id} className="story-card-mini glass animate-fade">
-                            <div className="story-image">
-                                <img src={story.image} alt={story.title} />
-                            </div>
-                            <div className="story-details">
-                                <span className="story-date">{story.date}</span>
-                                <h3 className="serif">{story.title}</h3>
-                                <p>{story.excerpt}</p>
-                                <Link to={`/journal/${story.id}`} className="btn-text">Lire la suite →</Link>
-                            </div>
-                        </article>
-                    ))}
+                    {loadingStories ? (
+                        <p>Chargement des histoires...</p>
+                    ) : (
+                        recentStories.map(story => (
+                            <article key={story.id} className="story-card-mini glass animate-fade">
+                                <div className="story-image">
+                                    <img src={story.image} alt={story.title} />
+                                </div>
+                                <div className="story-details">
+                                    <span className="story-date">{story.date}</span>
+                                    <h3 className="serif">{story.title}</h3>
+                                    <p>{story.excerpt}</p>
+                                    <Link to={`/journal/${story.id}`} className="btn-text">Lire la suite →</Link>
+                                </div>
+                            </article>
+                        ))
+                    )}
                 </div>
                 <div className="section-footer">
                     <Link to="/journal" className="btn btn-secondary">Explorer le Journal</Link>
