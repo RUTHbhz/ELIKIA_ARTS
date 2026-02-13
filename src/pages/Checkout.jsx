@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../config/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { CreditCard, Smartphone, CheckCircle2, AlertCircle } from 'lucide-react';
+import { NotificationService } from '../services/notificationService';
 import './Checkout.css';
 
 const Checkout = () => {
@@ -79,7 +80,16 @@ const Checkout = () => {
                 createdAt: serverTimestamp()
             };
 
-            await addDoc(collection(db, 'orders'), orderData);
+            const docRef = await addDoc(collection(db, 'orders'), orderData);
+            const finalOrderData = { id: docRef.id, ...orderData };
+
+            // Trigger Real Notifications (Directly in frontend for EmailJS)
+            if (paymentMethod === 'card') {
+                await NotificationService.sendOrderEmail(finalOrderData);
+            } else if (paymentMethod === 'mobile') {
+                await NotificationService.sendOrderSMS(finalOrderData);
+            }
+
             setIsSuccess(true);
             clearCart();
         } catch (err) {
