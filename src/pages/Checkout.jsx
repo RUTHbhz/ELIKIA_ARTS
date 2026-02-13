@@ -12,13 +12,16 @@ const Checkout = () => {
     const { currentUser } = useAuth();
     const [paymentMethod, setPaymentMethod] = useState('card');
     const [phone, setPhone] = useState('');
+    const [cardData, setCardData] = useState({ number: '', expiry: '', cvc: '' });
     const [isProcessing, setIsProcessing] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [error, setError] = useState('');
 
     const TEST_NUMBERS = {
-        SUCCESS: '0810000000',
-        FAILURE: '0819999999'
+        MOBILE_SUCCESS: '0810000000',
+        MOBILE_FAILURE: '0819999999',
+        CARD_SUCCESS: '4242424242424242', // Standard Stripe Success
+        CARD_FAILURE: '4000000000000002'  // Card Declined
     };
 
     const handlePayment = async (e) => {
@@ -26,27 +29,41 @@ const Checkout = () => {
         setError('');
         setIsProcessing(true);
 
-        // Simple validation for Mobile Money
+        // Mobile Money Validation
         if (paymentMethod === 'mobile') {
             if (!phone.match(/^[0-9]{10}$/)) {
                 setError('Veuillez entrer un numéro valide (10 chiffres).');
                 setIsProcessing(false);
                 return;
             }
-            if (phone === TEST_NUMBERS.FAILURE) {
+            if (phone === TEST_NUMBERS.MOBILE_FAILURE) {
                 setTimeout(() => {
-                    setError('Paiement refusé : Solde insuffisant ou expiration du délai.');
+                    setError('Paiement Mobile refusé : Solde insuffisant.');
                     setIsProcessing(false);
                 }, 2000);
                 return;
             }
         }
 
+        // Credit Card Validation
+        if (paymentMethod === 'card') {
+            if (cardData.number.replace(/\s/g, '') === TEST_NUMBERS.CARD_FAILURE) {
+                setTimeout(() => {
+                    setError('Paiement par carte refusé : Carte déclinée par la banque.');
+                    setIsProcessing(false);
+                }, 2000);
+                return;
+            }
+            if (cardData.number.length < 16 || cardData.cvc.length < 3) {
+                setError('Veuillez remplir correctement les informations de votre carte Visa/Mastercard.');
+                setIsProcessing(false);
+                return;
+            }
+        }
+
         try {
-            // Simulate API Latency
             await new Promise(resolve => setTimeout(resolve, 3000));
 
-            // Create order in Firestore
             const orderData = {
                 userId: currentUser?.uid || 'anonymous',
                 customerEmail: currentUser?.email || e.target.email.value,
@@ -57,20 +74,24 @@ const Checkout = () => {
                 total: cartTotal,
                 paymentMethod: paymentMethod,
                 phoneNumber: paymentMethod === 'mobile' ? phone : null,
+                cardLast4: paymentMethod === 'card' ? cardData.number.slice(-4) : null,
                 status: 'pending',
                 createdAt: serverTimestamp()
             };
 
             await addDoc(collection(db, 'orders'), orderData);
-
-            setIsProcessing(false);
             setIsSuccess(true);
             clearCart();
         } catch (err) {
-            console.error("Payment/Order error:", err);
-            setError('Une erreur est survenue lors du traitement. Veuillez réessayer.');
+            setError('Erreur technique. Veuillez réessayer.');
+        } finally {
             setIsProcessing(false);
         }
+    };
+
+    const handleCardChange = (e) => {
+        const { name, value } = e.target;
+        setCardData(prev => ({ ...prev, [name]: value }));
     };
 
     if (isSuccess) {
@@ -141,10 +162,36 @@ const Checkout = () => {
                         )}
                         {paymentMethod === 'card' && (
                             <div className="card-info animate-fade">
-                                <p>Paiement sécurisé via Stripe.</p>
-                                <div className="stripe-mock-input">
-                                    <CreditCard size={16} />
-                                    <span>•••• •••• •••• ••••</span>
+                                <p>Paiement sécurisé via Stripe (Visa, Mastercard).</p>
+                                <div className="test-hint">💡 Test Visa : <strong>4242 4242 4242 4242</strong></div>
+                                <div className="card-fields">
+                                    <input
+                                        name="number"
+                                        placeholder="Numéro de carte"
+                                        value={cardData.number}
+                                        onChange={handleCardChange}
+                                        maxLength="16"
+                                        required
+                                    />
+                                    <div className="row">
+                                        <input
+                                            name="expiry"
+                                            placeholder="MM/YY"
+                                            value={cardData.expiry}
+                                            onChange={handleCardChange}
+                                            maxLength="5"
+                                            required
+                                        />
+                                        <input
+                                            name="cvc"
+                                            type="password"
+                                            placeholder="CVC"
+                                            value={cardData.cvc}
+                                            onChange={handleCardChange}
+                                            maxLength="3"
+                                            required
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         )}
