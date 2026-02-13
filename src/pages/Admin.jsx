@@ -24,7 +24,7 @@ const Admin = () => {
     const { data: users } = useFirestoreConfig('users');
 
     const handleSeedDatabase = async () => {
-        if (window.confirm('Initialize with demo data?')) {
+        if (window.confirm('Initialize with demo data? This will add many items.')) {
             setIsSeeding(true);
             const result = await seedDatabase();
             alert(result.message);
@@ -50,9 +50,9 @@ const Admin = () => {
         } else {
             // Default empty schemas
             const defaults = {
-                artwork: { title: '', artist: '', price: '', image: '/assets/images/placeholder.jpg', theme: 'Resilience' },
-                artist: { name: '', role: '', specialty: '', bio: '', portrait: '/assets/images/placeholder.jpg' },
-                story: { title: '', author: '', date: new Date().toLocaleDateString(), excerpt: '', content: '', image: '/assets/images/placeholder.jpg' },
+                artwork: { title: '', artist: '', price: '', image: '', theme: 'Resilience', description: '' },
+                artist: { name: '', role: '', specialty: '', bio: '', portrait: '' },
+                story: { title: '', author: '', date: new Date().toLocaleDateString(), excerpt: '', content: '', image: '' },
                 user: { displayName: '', email: '', role: 'client' }
             };
             setFormData(defaults[type] || {});
@@ -72,7 +72,9 @@ const Admin = () => {
 
         try {
             if (editingItem) {
-                await updateDoc(doc(db, collectionName, editingItem.id), formData);
+                // Remove ID from data before sending to Firestore
+                const { id, ...updateData } = formData;
+                await updateDoc(doc(db, collectionName, editingItem.id), updateData);
             } else {
                 if (modalType === 'user' && formData.uid) {
                     await setDoc(doc(db, 'users', formData.uid), formData);
@@ -82,6 +84,7 @@ const Admin = () => {
             }
             closeModal();
         } catch (error) {
+            console.error("Form error:", error);
             alert("Erreur : " + error.message);
         }
     };
@@ -93,29 +96,29 @@ const Admin = () => {
 
     // Render Stats
     const renderDashboard = () => (
-        <div className="admin-dashboard-stats">
-            <div className="stat-card glass">
+        <div className="admin-dashboard-stats animate-fade">
+            <div className="stat-card">
                 <Palette size={24} />
                 <div className="stat-content">
                     <span className="stat-value">{artworks.length}</span>
                     <span className="stat-label">Œuvres</span>
                 </div>
             </div>
-            <div className="stat-card glass">
+            <div className="stat-card">
                 <Users size={24} />
                 <div className="stat-content">
                     <span className="stat-value">{artists.length}</span>
                     <span className="stat-label">Artistes</span>
                 </div>
             </div>
-            <div className="stat-card glass">
+            <div className="stat-card">
                 <BookOpen size={24} />
                 <div className="stat-content">
                     <span className="stat-value">{stories.length}</span>
                     <span className="stat-label">Articles</span>
                 </div>
             </div>
-            <div className="stat-card glass">
+            <div className="stat-card">
                 <UserCheck size={24} />
                 <div className="stat-content">
                     <span className="stat-value">{users.length}</span>
@@ -129,19 +132,19 @@ const Admin = () => {
     const renderTable = (data, type, collectionName) => (
         <div className="admin-content-section animate-fade">
             <header className="section-header-admin">
-                <h3>{type === 'artwork' ? 'Catalogue Œuvres' : (type === 'artist' ? 'Gestion Artistes' : (type === 'story' ? 'Journal de Bord' : 'Communauté'))}</h3>
+                <h3>{type === 'artwork' ? 'Galerie d\'art' : (type === 'artist' ? 'Annuaire Artistes' : (type === 'story' ? 'Journal Elikia' : 'Communauté Elikia'))}</h3>
                 <button className="btn btn-primary add-btn" onClick={() => openModal(type)}>
-                    <Plus size={16} /> Ajouter
+                    <Plus size={16} /> Nouveau
                 </button>
             </header>
             <div className="table-responsive">
                 <table className="admin-table">
                     <thead>
                         <tr>
-                            {type === 'artwork' && <><th>Image</th><th>Titre</th><th>Artiste</th><th>Prix</th></>}
-                            {type === 'artist' && <><th>Photo</th><th>Nom</th><th>Spécialité</th></>}
-                            {type === 'story' && <><th>Titre</th><th>Auteur</th><th>Date</th></>}
-                            {type === 'user' && <><th>Nom</th><th>Email</th><th>Rôle</th></>}
+                            {type === 'artwork' && <><th>Aperçu</th><th>Titre</th><th>Artiste</th><th>Prix</th></>}
+                            {type === 'artist' && <><th>Portrait</th><th>Nom</th><th>Spécialité</th></>}
+                            {type === 'story' && <><th>Miniature</th><th>Titre</th><th>Auteur</th></>}
+                            {type === 'user' && <><th>Profil</th><th>Email</th><th>Rôle</th></>}
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -151,7 +154,7 @@ const Admin = () => {
                                 {type === 'artwork' && (
                                     <>
                                         <td><img src={item.image} className="small-thumb" alt="" /></td>
-                                        <td>{item.title}</td>
+                                        <td><strong>{item.title}</strong></td>
                                         <td>{item.artist}</td>
                                         <td>{item.price} $</td>
                                     </>
@@ -159,20 +162,20 @@ const Admin = () => {
                                 {type === 'artist' && (
                                     <>
                                         <td><img src={item.portrait} className="small-thumb circle" alt="" /></td>
-                                        <td>{item.name}</td>
+                                        <td><strong>{item.name}</strong></td>
                                         <td>{item.specialty}</td>
                                     </>
                                 )}
                                 {type === 'story' && (
                                     <>
-                                        <td>{item.title}</td>
+                                        <td><img src={item.image} className="small-thumb" alt="" /></td>
+                                        <td><strong>{item.title}</strong></td>
                                         <td>{item.author}</td>
-                                        <td>{item.date}</td>
                                     </>
                                 )}
                                 {type === 'user' && (
                                     <>
-                                        <td>{item.displayName || item.name || 'N/A'}</td>
+                                        <td>{item.displayName || item.name || 'Sans nom'}</td>
                                         <td>{item.email}</td>
                                         <td>
                                             <span className={`badge-role ${item.role}`}>
@@ -183,8 +186,8 @@ const Admin = () => {
                                     </>
                                 )}
                                 <td className="actions-cell">
-                                    <button className="icon-btn edit" onClick={() => openModal(type, item)}><Edit2 size={14} /></button>
-                                    <button onClick={() => handleDelete(collectionName, item.id)} className="icon-btn delete"><Trash2 size={14} /></button>
+                                    <button className="icon-btn edit" title="Modifier" onClick={() => openModal(type, item)}><Edit2 size={16} /></button>
+                                    <button className="icon-btn delete" title="Supprimer" onClick={() => handleDelete(collectionName, item.id)}><Trash2 size={16} /></button>
                                 </td>
                             </tr>
                         ))}
@@ -196,46 +199,45 @@ const Admin = () => {
 
     return (
         <div className="admin-workspace">
-            <aside className="admin-sidebar-new glass">
-                <div className="sidebar-brand serif">Elikia Admin</div>
-                <nav className="sidebar-nav">
-                    <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>
-                        <LayoutDashboard size={20} /> Dashboard
-                    </button>
-                    <button className={activeTab === 'artworks' ? 'active' : ''} onClick={() => setActiveTab('artworks')}>
-                        <Palette size={20} /> Tableaux
-                    </button>
-                    <button className={activeTab === 'artists' ? 'active' : ''} onClick={() => setActiveTab('artists')}>
-                        <Users size={20} /> Artistes
-                    </button>
-                    <button className={activeTab === 'journal' ? 'active' : ''} onClick={() => setActiveTab('journal')}>
-                        <BookOpen size={20} /> Journal
-                    </button>
-                    <button className={activeTab === 'users' ? 'active' : ''} onClick={() => setActiveTab('users')}>
-                        <UserCheck size={20} /> Utilisateurs
-                    </button>
-                    <button className={activeTab === 'orders' ? 'active' : ''} onClick={() => setActiveTab('orders')}>
-                        <ShoppingBag size={20} /> Commandes
-                    </button>
-                </nav>
+            <aside className="admin-sidebar-new">
+                <div>
+                    <div className="sidebar-brand serif">ELIKIA ADMIN</div>
+                    <nav className="sidebar-nav">
+                        <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>
+                            <LayoutDashboard size={20} /> <span>Tableau de bord</span>
+                        </button>
+                        <button className={activeTab === 'artworks' ? 'active' : ''} onClick={() => setActiveTab('artworks')}>
+                            <Palette size={20} /> <span>Galerie</span>
+                        </button>
+                        <button className={activeTab === 'artists' ? 'active' : ''} onClick={() => setActiveTab('artists')}>
+                            <Users size={20} /> <span>Artistes</span>
+                        </button>
+                        <button className={activeTab === 'journal' ? 'active' : ''} onClick={() => setActiveTab('journal')}>
+                            <BookOpen size={20} /> <span>Journal</span>
+                        </button>
+                        <button className={activeTab === 'users' ? 'active' : ''} onClick={() => setActiveTab('users')}>
+                            <UserCheck size={20} /> <span>Communauté</span>
+                        </button>
+                    </nav>
+                </div>
                 <div className="sidebar-footer">
                     <button onClick={handleSeedDatabase} disabled={isSeeding} className="seed-btn-full">
-                        <Database size={16} /> Reset Demo Data
+                        <Database size={16} /> <span>Réinitialiser les données demo</span>
                     </button>
                 </div>
             </aside>
 
             <main className="admin-main-content">
-                <header className="admin-top-bar glass">
+                <header className="admin-top-bar">
                     <h2 className="serif">
                         {activeTab === 'dashboard' && 'Vue d\'ensemble'}
-                        {activeTab === 'artworks' && 'Gestion Catalogue'}
-                        {activeTab === 'artists' && 'Fiches Artistes'}
-                        {activeTab === 'journal' && 'Rédaction Journal'}
-                        {activeTab === 'users' && 'Administration Communauté'}
-                        {activeTab === 'orders' && 'Suivi des Ventes'}
+                        {activeTab === 'artworks' && 'Gestion de la Galerie'}
+                        {activeTab === 'artists' && 'Profils des Artistes'}
+                        {activeTab === 'journal' && 'Rédaction du Journal'}
+                        {activeTab === 'users' && 'Administration des Utilisateurs'}
+                        {activeTab === 'orders' && 'Commandes & Ventes'}
                     </h2>
-                    <div className="user-indicator">Mode Administrateur</div>
+                    <div className="user-indicator">Espace Sécurisé Admin</div>
                 </header>
 
                 <div className="admin-body">
@@ -244,71 +246,121 @@ const Admin = () => {
                     {activeTab === 'artists' && renderTable(artists, 'artist', 'artists')}
                     {activeTab === 'journal' && renderTable(stories, 'story', 'journal')}
                     {activeTab === 'users' && renderTable(users, 'user', 'users')}
-                    {activeTab === 'orders' && (
-                        <div className="placeholder-admin glass animate-fade">
-                            <ShoppingBag size={48} opacity={0.2} />
-                            <p>Historique des commandes à venir...</p>
-                        </div>
-                    )}
                 </div>
             </main>
 
-            {/* Modal for CRUD */}
             {showModal && (
                 <div className="admin-modal-overlay">
-                    <div className="admin-modal glass animate-zoom">
+                    <div className="admin-modal animate-zoom">
                         <header className="modal-header">
-                            <h3>{editingItem ? 'Modifier' : 'Nouveau'} : {modalType}</h3>
-                            <button onClick={closeModal} className="close-btn"><X size={20} /></button>
+                            <h3>{editingItem ? 'Modifier' : 'Ajouter'} {modalType === 'artwork' ? 'une œuvre' : (modalType === 'artist' ? 'un artiste' : (modalType === 'story' ? 'un article' : 'un utilisateur'))}</h3>
+                            <button onClick={closeModal} className="close-btn"><X size={24} /></button>
                         </header>
                         <form onSubmit={handleFormSubmit} className="admin-form">
                             {modalType === 'artwork' && (
                                 <>
-                                    <input name="title" placeholder="Titre de l'œuvre" value={formData.title || ''} onChange={handleInputChange} required />
-                                    <input name="artist" placeholder="Artiste" value={formData.artist || ''} onChange={handleInputChange} required />
-                                    <input name="price" type="number" placeholder="Prix ($)" value={formData.price || ''} onChange={handleInputChange} required />
-                                    <input name="image" placeholder="Lien image" value={formData.image || ''} onChange={handleInputChange} required />
-                                    <select name="theme" value={formData.theme || ''} onChange={handleInputChange}>
-                                        <option value="Resilience">Resilience</option>
-                                        <option value="Liberté">Liberté</option>
-                                        <option value="Identité">Identité</option>
-                                        <option value="Exploration">Exploration</option>
-                                    </select>
+                                    <div className="form-group">
+                                        <label>Titre de l'œuvre</label>
+                                        <input name="title" placeholder="Ex: Rêves d'Afrique" value={formData.title || ''} onChange={handleInputChange} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Nom de l'artiste</label>
+                                        <input name="artist" placeholder="Ex: Jean Mukendi" value={formData.artist || ''} onChange={handleInputChange} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Prix ($)</label>
+                                        <input name="price" type="number" placeholder="Ex: 1200" value={formData.price || ''} onChange={handleInputChange} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>URL de l'image (Firebase Storage ou externe)</label>
+                                        <input name="image" placeholder="https://..." value={formData.image || ''} onChange={handleInputChange} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Thème artistique</label>
+                                        <select name="theme" value={formData.theme || ''} onChange={handleInputChange}>
+                                            <option value="Resilience">Resilience</option>
+                                            <option value="Liberté">Liberté</option>
+                                            <option value="Identité">Identité</option>
+                                            <option value="Exploration">Exploration</option>
+                                        </select>
+                                    </div>
                                 </>
                             )}
                             {modalType === 'artist' && (
                                 <>
-                                    <input name="name" placeholder="Nom complet" value={formData.name || ''} onChange={handleInputChange} required />
-                                    <input name="role" placeholder="Rôle (ex: Peintre)" value={formData.role || ''} onChange={handleInputChange} required />
-                                    <input name="specialty" placeholder="Spécialité" value={formData.specialty || ''} onChange={handleInputChange} required />
-                                    <textarea name="bio" placeholder="Biographie" value={formData.bio || ''} onChange={handleInputChange} rows="4"></textarea>
-                                    <input name="portrait" placeholder="Lien portrait" value={formData.portrait || ''} onChange={handleInputChange} required />
+                                    <div className="form-group">
+                                        <label>Nom complet</label>
+                                        <input name="name" placeholder="Ex: Sarah Mavungu" value={formData.name || ''} onChange={handleInputChange} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Rôle principal</label>
+                                        <input name="role" placeholder="Ex: Peintre Contemporaine" value={formData.role || ''} onChange={handleInputChange} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Spécialités (séparées par des virgules)</label>
+                                        <input name="specialty" placeholder="Ex: Abrait, Huile, Sculpture" value={formData.specialty || ''} onChange={handleInputChange} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Biographie</label>
+                                        <textarea name="bio" placeholder="Racontez le parcours de l'artiste..." value={formData.bio || ''} onChange={handleInputChange} rows="4"></textarea>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>URL du Portrait</label>
+                                        <input name="portrait" placeholder="https://..." value={formData.portrait || ''} onChange={handleInputChange} required />
+                                    </div>
                                 </>
                             )}
                             {modalType === 'story' && (
                                 <>
-                                    <input name="title" placeholder="Titre de l'article" value={formData.title || ''} onChange={handleInputChange} required />
-                                    <input name="author" placeholder="Auteur" value={formData.author || ''} onChange={handleInputChange} required />
-                                    <input name="excerpt" placeholder="Extrait court" value={formData.excerpt || ''} onChange={handleInputChange} required />
-                                    <textarea name="content" placeholder="Contenu complet" value={formData.content || ''} onChange={handleInputChange} rows="6"></textarea>
-                                    <input name="image" placeholder="Image de couverture" value={formData.image || ''} onChange={handleInputChange} required />
+                                    <div className="form-group">
+                                        <label>Titre de l'article</label>
+                                        <input name="title" placeholder="Ex: L'art comme vecteur de paix" value={formData.title || ''} onChange={handleInputChange} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Auteur</label>
+                                        <input name="author" placeholder="Ex: Rédaction Elikia" value={formData.author || ''} onChange={handleInputChange} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Résumé / Extrait</label>
+                                        <input name="excerpt" placeholder="Bref aperçu de l'article..." value={formData.excerpt || ''} onChange={handleInputChange} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Contenu complet</label>
+                                        <textarea name="content" placeholder="Rédigez votre histoire ici..." value={formData.content || ''} onChange={handleInputChange} rows="6"></textarea>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>URL Image de couverture</label>
+                                        <input name="image" placeholder="https://..." value={formData.image || ''} onChange={handleInputChange} required />
+                                    </div>
                                 </>
                             )}
                             {modalType === 'user' && (
                                 <>
-                                    <input name="displayName" placeholder="Nom complet" value={formData.displayName || ''} onChange={handleInputChange} required />
-                                    <input name="email" placeholder="Email" value={formData.email || ''} onChange={handleInputChange} required disabled={!!editingItem} />
-                                    <select name="role" value={formData.role || ''} onChange={handleInputChange}>
-                                        <option value="client">Client</option>
-                                        <option value="livreur">Livreur</option>
-                                        <option value="admin">Administrateur</option>
-                                    </select>
+                                    <div className="form-group">
+                                        <label>Nom d'affichage</label>
+                                        <input name="displayName" value={formData.displayName || ''} onChange={handleInputChange} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Adresse Email</label>
+                                        <input name="email" value={formData.email || ''} disabled={true} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Rôle utilisateur</label>
+                                        <select name="role" value={formData.role || ''} onChange={handleInputChange}>
+                                            <option value="client">Client (Par défaut)</option>
+                                            <option value="livreur">Livreur (Accès livraisons)</option>
+                                            <option value="admin">Administrateur (Accès complet)</option>
+                                        </select>
+                                    </div>
                                 </>
                             )}
-                            <footer className="form-footer">
-                                <button type="submit" className="btn btn-primary"><Save size={16} /> Enregistrer</button>
-                            </footer>
                         </form>
+                        <footer className="form-footer">
+                            <button onClick={closeModal} className="btn-luxury-back icon-btn">Annuler</button>
+                            <button onClick={handleFormSubmit} className="btn-primary btn">
+                                <Save size={18} /> <span>Enregistrer les modifications</span>
+                            </button>
+                        </footer>
                     </div>
                 </div>
             )}
