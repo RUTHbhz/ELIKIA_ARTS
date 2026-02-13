@@ -1,36 +1,76 @@
 import React, { useState } from 'react';
-import './Checkout.css';
+import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import { db } from '../config/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { CreditCard, Smartphone, CheckCircle2, AlertCircle } from 'lucide-react';
+import './Checkout.css';
 
 const Checkout = () => {
     const { cartItems, cartTotal, clearCart } = useCart();
+    const { currentUser } = useAuth();
     const [paymentMethod, setPaymentMethod] = useState('card');
+    const [phone, setPhone] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [error, setError] = useState('');
 
-    const handlePayment = (e) => {
+    const TEST_NUMBERS = {
+        SUCCESS: '0810000000',
+        FAILURE: '0819999999'
+    };
+
+    const handlePayment = async (e) => {
         e.preventDefault();
+        setError('');
         setIsProcessing(true);
 
-        // Simulate payment delay
-        setTimeout(() => {
-            // Create new order
-            const newOrder = {
-                id: Math.floor(Math.random() * 100000).toString(),
-                date: new Date().toLocaleDateString('fr-FR'),
+        // Simple validation for Mobile Money
+        if (paymentMethod === 'mobile') {
+            if (!phone.match(/^[0-9]{10}$/)) {
+                setError('Veuillez entrer un numéro valide (10 chiffres).');
+                setIsProcessing(false);
+                return;
+            }
+            if (phone === TEST_NUMBERS.FAILURE) {
+                setTimeout(() => {
+                    setError('Paiement refusé : Solde insuffisant ou expiration du délai.');
+                    setIsProcessing(false);
+                }, 2000);
+                return;
+            }
+        }
+
+        try {
+            // Simulate API Latency
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
+            // Create order in Firestore
+            const orderData = {
+                userId: currentUser?.uid || 'anonymous',
+                customerEmail: currentUser?.email || e.target.email.value,
+                customerName: e.target.name.value,
+                address: e.target.address.value,
+                city: e.target.city.value,
                 items: cartItems,
                 total: cartTotal,
-                status: 'Confirmée'
+                paymentMethod: paymentMethod,
+                phoneNumber: paymentMethod === 'mobile' ? phone : null,
+                status: 'pending',
+                createdAt: serverTimestamp()
             };
 
-            // Save to localStorage
-            const existingOrders = JSON.parse(localStorage.getItem('elikia_orders') || '[]');
-            localStorage.setItem('elikia_orders', JSON.stringify([newOrder, ...existingOrders]));
+            await addDoc(collection(db, 'orders'), orderData);
 
             setIsProcessing(false);
             setIsSuccess(true);
             clearCart();
-        }, 2500);
+        } catch (err) {
+            console.error("Payment/Order error:", err);
+            setError('Une erreur est survenue lors du traitement. Veuillez réessayer.');
+            setIsProcessing(false);
+        }
     };
 
     if (isSuccess) {
@@ -52,15 +92,21 @@ const Checkout = () => {
 
             <div className="checkout-grid">
                 <form className="checkout-form glass" onSubmit={handlePayment}>
+                    {error && (
+                        <div className="error-alert animate-shake">
+                            <AlertCircle size={18} /> {error}
+                        </div>
+                    )}
+
                     <section className="form-section">
                         <h3>1. Informations de Livraison</h3>
                         <div className="input-group">
-                            <input type="text" placeholder="Nom complet" required />
-                            <input type="email" placeholder="Email" required />
-                            <input type="text" placeholder="Adresse" required />
+                            <input name="name" type="text" placeholder="Nom complet" required />
+                            <input name="email" type="email" placeholder="Email" defaultValue={currentUser?.email || ''} required />
+                            <input name="address" type="text" placeholder="Adresse complète" required />
                             <div className="row">
-                                <input type="text" placeholder="Ville" required />
-                                <input type="text" placeholder="Pays" required />
+                                <input name="city" type="text" placeholder="Ville" required />
+                                <input name="country" type="text" placeholder="Pays" defaultValue="RD Congo" required />
                             </div>
                         </div>
                     </section>
@@ -70,24 +116,36 @@ const Checkout = () => {
                         <div className="payment-options">
                             <label className={`payment-pill ${paymentMethod === 'card' ? 'active' : ''}`}>
                                 <input type="radio" name="payment" value="card" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} />
-                                Carte Bancaire (Stripe)
+                                <CreditCard size={20} />
+                                <span>Stripe / Carte</span>
                             </label>
                             <label className={`payment-pill ${paymentMethod === 'mobile' ? 'active' : ''}`}>
                                 <input type="radio" name="payment" value="mobile" checked={paymentMethod === 'mobile'} onChange={() => setPaymentMethod('mobile')} />
-                                Mobile Money (M-Pesa/Airtel)
+                                <Smartphone size={20} />
+                                <span>Mobile Money</span>
                             </label>
                         </div>
 
                         {paymentMethod === 'mobile' && (
                             <div className="mobile-money-info animate-fade">
-                                <p>Veuillez entrer votre numéro de téléphone pour recevoir la demande de paiement.</p>
-                                <input type="tel" placeholder="+243 ..." required />
+                                <p>Saisissez votre numéro pour initier la demande de paiement.</p>
+                                <div className="test-hint">💡 Test : <strong>0810000000</strong> pour succès</div>
+                                <input
+                                    type="tel"
+                                    placeholder="081 234 5678"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    required
+                                />
                             </div>
                         )}
                         {paymentMethod === 'card' && (
                             <div className="card-info animate-fade">
                                 <p>Paiement sécurisé via Stripe.</p>
-                                <div className="stripe-mock-input">•••• •••• •••• ••••</div>
+                                <div className="stripe-mock-input">
+                                    <CreditCard size={16} />
+                                    <span>•••• •••• •••• ••••</span>
+                                </div>
                             </div>
                         )}
                     </section>
@@ -97,7 +155,7 @@ const Checkout = () => {
                         className="btn btn-primary btn-block mt-lg"
                         disabled={isProcessing || cartItems.length === 0}
                     >
-                        {isProcessing ? 'Traitement en cours...' : `Payer ${cartTotal} $`}
+                        {isProcessing ? 'Traitement en cours...' : `Confirmer et Payer ${cartTotal} $`}
                     </button>
                 </form>
 
