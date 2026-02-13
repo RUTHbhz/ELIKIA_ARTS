@@ -14,9 +14,12 @@ const FullGallery = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const themes = ['Tous', 'Resilience', 'Liberté', 'Identité', 'Exploration'];
 
-    const filteredArt = filter === 'Tous'
-        ? artworks
-        : artworks.filter(art => art.theme === filter);
+    const filteredArt = artworks.filter(art => {
+        const matchesTheme = filter === 'Tous' || art.theme === filter;
+        const matchesSearch = art.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            art.artist.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesTheme && matchesSearch;
+    });
 
     return (
         <div className="gallery-page container animate-fade">
@@ -24,16 +27,28 @@ const FullGallery = () => {
                 <h1 className="serif light-text">Toute la Collection</h1>
                 <p>Explorez l'étendue de la résilience à travers chaque coup de pinceau.</p>
 
-                <div className="filter-bar">
-                    {themes.map(theme => (
-                        <button
-                            key={theme}
-                            className={`filter-btn ${filter === theme ? 'active' : ''}`}
-                            onClick={() => setFilter(theme)}
-                        >
-                            {theme === 'all' ? 'Tout' : theme}
-                        </button>
-                    ))}
+                <div className="search-and-filter">
+                    <div className="search-box glass">
+                        <Search size={20} />
+                        <input
+                            type="text"
+                            placeholder="Rechercher une œuvre ou un artiste..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="filter-bar">
+                        {themes.map(theme => (
+                            <button
+                                key={theme}
+                                className={`filter-btn ${filter === theme ? 'active' : ''}`}
+                                onClick={() => setFilter(theme)}
+                            >
+                                {theme}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </header>
 

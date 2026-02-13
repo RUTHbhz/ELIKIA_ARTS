@@ -19,6 +19,9 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Footer from './components/layout/Footer';
 import CartDrawer from './components/cart/CartDrawer';
+import OrderTracking from './pages/OrderTracking';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import Terms from './pages/Terms';
 import './index.css';
 
 // Component to protect routes
@@ -110,6 +113,9 @@ function App() {
                   <Route path="/artist/:id" element={<AdminExclusiveRoute><ArtistProfile /></AdminExclusiveRoute>} />
                   <Route path="/journal" element={<AdminExclusiveRoute><Journal /></AdminExclusiveRoute>} />
                   <Route path="/journal/:id" element={<AdminExclusiveRoute><JournalDetail /></AdminExclusiveRoute>} />
+                  <Route path="/tracking" element={<OrderTracking />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<Terms />} />
                 </Routes>
               </main>
               <Footer />

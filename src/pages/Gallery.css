@@ -51,11 +51,41 @@
     font-weight: 300;
 }
 
+.search-and-filter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    margin: 3rem auto 0;
+    max-width: 800px;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    padding: 1rem 1.5rem;
+    border-radius: 100px;
+}
+
+.search-box input {
+    background: none;
+    border: none;
+    color: var(--color-text-primary);
+    width: 100%;
+    font-size: 1rem;
+    outline: none;
+}
+
+.search-box input::placeholder {
+    color: var(--color-text-secondary);
+}
+
 .filter-bar {
     display: flex;
     justify-content: center;
-    gap: var(--spacing-sm);
-    margin-top: var(--spacing-md);
+    gap: 0.5rem;
     flex-wrap: wrap;
 }
 
