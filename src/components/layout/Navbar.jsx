@@ -26,13 +26,18 @@ const Navbar = () => {
                             <Link to="/admin" onClick={() => setIsMenuOpen(false)}>Dashboard Admin</Link>
                             <Link to="/admin" onClick={() => setIsMenuOpen(false)}>Gestion BDD</Link>
                         </>
+                    ) : currentUser?.role === 'livreur' ? (
+                        <>
+                            <Link to="/delivery" onClick={() => setIsMenuOpen(false)}>Dashboard Livreur</Link>
+                            <Link to="/journal" onClick={() => setIsMenuOpen(false)}>Histoires</Link>
+                        </>
                     ) : (
                         <>
                             <Link to="/" onClick={() => setIsMenuOpen(false)}>Accueil</Link>
                             <Link to="/gallery" onClick={() => setIsMenuOpen(false)}>Galerie</Link>
                             <Link to="/artists" onClick={() => setIsMenuOpen(false)}>Artistes</Link>
                             <Link to="/journal" onClick={() => setIsMenuOpen(false)}>Histoires</Link>
-                            <Link to="/contact" onClick={() => setIsMenuOpen(false)}>Contact</Link>
+                            <Link to="/tracking" onClick={() => setIsMenuOpen(false)}>Suivi</Link>
                         </>
                     )}
                 </div>
@@ -56,7 +61,7 @@ const Navbar = () => {
                         </Link>
                     )}
 
-                    {currentUser?.role !== 'admin' && (
+                    {currentUser?.role !== 'admin' && currentUser?.role !== 'livreur' && (
                         <button className="cart-icon" onClick={() => setIsCartOpen(true)}>
                             <ShoppingBag size={22} />
                             {cartCount > 0 && <span className="cart-count">{cartCount}</span>}

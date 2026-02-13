@@ -32,6 +32,8 @@ const Login = () => {
 
             if (userDoc.exists() && userDoc.data().role === 'admin') {
                 navigate('/admin', { replace: true });
+            } else if (userDoc.exists() && userDoc.data().role === 'livreur') {
+                navigate('/delivery', { replace: true });
             } else {
                 navigate(from, { replace: true });
             }

@@ -20,6 +20,7 @@ import Signup from './pages/Signup';
 import Footer from './components/layout/Footer';
 import CartDrawer from './components/cart/CartDrawer';
 import OrderTracking from './pages/OrderTracking';
+import DeliveryPanel from './pages/DeliveryPanel';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import './index.css';
@@ -46,6 +47,20 @@ const AdminRoute = ({ children }) => {
   if (loading) return null;
 
   if (!currentUser || currentUser.role !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
+// Component to protect delivery routes
+const DeliveryRoute = ({ children }) => {
+  const { currentUser, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) return null;
+
+  if (!currentUser || (currentUser.role !== 'livreur' && currentUser.role !== 'admin')) {
     return <Navigate to="/" replace />;
   }
 
@@ -114,6 +129,14 @@ function App() {
                   <Route path="/journal" element={<AdminExclusiveRoute><Journal /></AdminExclusiveRoute>} />
                   <Route path="/journal/:id" element={<AdminExclusiveRoute><JournalDetail /></AdminExclusiveRoute>} />
                   <Route path="/tracking" element={<OrderTracking />} />
+                  <Route
+                    path="/delivery"
+                    element={
+                      <DeliveryRoute>
+                        <DeliveryPanel />
+                      </DeliveryRoute>
+                    }
+                  />
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="/terms" element={<Terms />} />
                 </Routes>

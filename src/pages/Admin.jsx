@@ -22,6 +22,7 @@ const Admin = () => {
     const { data: artists } = useFirestoreConfig('artists');
     const { data: stories } = useFirestoreConfig('journal');
     const { data: users } = useFirestoreConfig('users');
+    const { data: orders } = useFirestoreConfig('orders');
 
     const handleSeedDatabase = async () => {
         if (window.confirm('Initialize with demo data? This will add many items.')) {
@@ -95,47 +96,60 @@ const Admin = () => {
     };
 
     // Render Stats
-    const renderDashboard = () => (
-        <div className="admin-dashboard-stats animate-fade">
-            <div className="stat-card">
-                <Palette size={24} />
-                <div className="stat-content">
-                    <span className="stat-value">{artworks.length}</span>
-                    <span className="stat-label">Œuvres</span>
+    const renderDashboard = () => {
+        const totalRevenue = orders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0);
+        const pendingOrders = orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled');
+
+        return (
+            <div className="admin-dashboard-stats animate-fade">
+                <div className="stat-card">
+                    <ShoppingBag size={24} className="text-primary" />
+                    <div className="stat-content">
+                        <span className="stat-value">{totalRevenue.toLocaleString()} $</span>
+                        <span className="stat-label">Chiffre d'Affaires</span>
+                    </div>
+                </div>
+                <div className="stat-card">
+                    <Truck size={24} className="text-secondary" />
+                    <div className="stat-content">
+                        <span className="stat-value">{pendingOrders.length}</span>
+                        <span className="stat-label">À Livrer</span>
+                    </div>
+                </div>
+                <div className="stat-card">
+                    <Palette size={24} />
+                    <div className="stat-content">
+                        <span className="stat-value">{artworks.length}</span>
+                        <span className="stat-label">Œuvres</span>
+                    </div>
+                </div>
+                <div className="stat-card">
+                    <Users size={24} />
+                    <div className="stat-content">
+                        <span className="stat-value">{users.length}</span>
+                        <span className="stat-label">Clients</span>
+                    </div>
                 </div>
             </div>
-            <div className="stat-card">
-                <Users size={24} />
-                <div className="stat-content">
-                    <span className="stat-value">{artists.length}</span>
-                    <span className="stat-label">Artistes</span>
-                </div>
-            </div>
-            <div className="stat-card">
-                <BookOpen size={24} />
-                <div className="stat-content">
-                    <span className="stat-value">{stories.length}</span>
-                    <span className="stat-label">Articles</span>
-                </div>
-            </div>
-            <div className="stat-card">
-                <UserCheck size={24} />
-                <div className="stat-content">
-                    <span className="stat-value">{users.length}</span>
-                    <span className="stat-label">Utilisateurs</span>
-                </div>
-            </div>
-        </div>
-    );
+        );
+    };
 
     // Render Tables
     const renderTable = (data, type, collectionName) => (
         <div className="admin-content-section animate-fade">
             <header className="section-header-admin">
-                <h3>{type === 'artwork' ? 'Galerie d\'art' : (type === 'artist' ? 'Annuaire Artistes' : (type === 'story' ? 'Journal Elikia' : 'Communauté Elikia'))}</h3>
-                <button className="btn btn-primary add-btn" onClick={() => openModal(type)}>
-                    <Plus size={16} /> Nouveau
-                </button>
+                <h3>
+                    {type === 'artwork' && 'Galerie d\'art'}
+                    {type === 'artist' && 'Annuaire Artistes'}
+                    {type === 'story' && 'Journal Elikia'}
+                    {type === 'user' && 'Communauté Elikia'}
+                    {type === 'order' && 'Gestion des Commandes'}
+                </h3>
+                {type !== 'order' && (
+                    <button className="btn btn-primary add-btn" onClick={() => openModal(type)}>
+                        <Plus size={16} /> Nouveau
+                    </button>
+                )}
             </header>
             <div className="table-responsive">
                 <table className="admin-table">
@@ -145,6 +159,7 @@ const Admin = () => {
                             {type === 'artist' && <><th>Portrait</th><th>Nom</th><th>Spécialité</th></>}
                             {type === 'story' && <><th>Miniature</th><th>Titre</th><th>Auteur</th></>}
                             {type === 'user' && <><th>Profil</th><th>Email</th><th>Rôle</th></>}
+                            {type === 'order' && <><th>Client</th><th>Total</th><th>Statut</th><th>Date</th></>}
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -185,6 +200,14 @@ const Admin = () => {
                                         </td>
                                     </>
                                 )}
+                                {type === 'order' && (
+                                    <>
+                                        <td>{item.customerName}</td>
+                                        <td><strong>{item.total} $</strong></td>
+                                        <td><span className={`status-badge ${item.status}`}>{item.status}</span></td>
+                                        <td>{item.createdAt?.toDate().toLocaleDateString()}</td>
+                                    </>
+                                )}
                                 <td className="actions-cell">
                                     <button className="icon-btn edit" title="Modifier" onClick={() => openModal(type, item)}><Edit2 size={16} /></button>
                                     <button className="icon-btn delete" title="Supprimer" onClick={() => handleDelete(collectionName, item.id)}><Trash2 size={16} /></button>
@@ -218,6 +241,9 @@ const Admin = () => {
                         <button className={activeTab === 'users' ? 'active' : ''} onClick={() => setActiveTab('users')}>
                             <UserCheck size={20} /> <span>Communauté</span>
                         </button>
+                        <button className={activeTab === 'orders' ? 'active' : ''} onClick={() => setActiveTab('orders')}>
+                            <ShoppingBag size={20} /> <span>Commandes</span>
+                        </button>
                     </nav>
                 </div>
                 <div className="sidebar-footer">
@@ -246,6 +272,7 @@ const Admin = () => {
                     {activeTab === 'artists' && renderTable(artists, 'artist', 'artists')}
                     {activeTab === 'journal' && renderTable(stories, 'story', 'journal')}
                     {activeTab === 'users' && renderTable(users, 'user', 'users')}
+                    {activeTab === 'orders' && renderTable(orders, 'order', 'orders')}
                 </div>
             </main>
 

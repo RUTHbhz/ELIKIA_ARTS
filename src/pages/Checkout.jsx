@@ -5,30 +5,35 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../config/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { CreditCard, Smartphone, CheckCircle2, AlertCircle } from 'lucide-react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { NotificationService } from '../services/notificationService';
 import './Checkout.css';
+
+// Initialize Stripe with user's Public Key
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const Checkout = () => {
     const { cartItems, cartTotal, clearCart } = useCart();
     const { currentUser } = useAuth();
     const [paymentMethod, setPaymentMethod] = useState('card');
+    const stripe = useStripe();
+    const elements = useElements();
     const [phone, setPhone] = useState('');
-    const [cardData, setCardData] = useState({ number: '', expiry: '', cvc: '' });
     const [isProcessing, setIsProcessing] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [error, setError] = useState('');
-
-    const TEST_NUMBERS = {
-        MOBILE_SUCCESS: '0810000000',
-        MOBILE_FAILURE: '0819999999',
-        CARD_SUCCESS: '4242424242424242', // Standard Stripe Success
-        CARD_FAILURE: '4000000000000002'  // Card Declined
-    };
 
     const handlePayment = async (e) => {
         e.preventDefault();
         setError('');
         setIsProcessing(true);
+
+        if (paymentMethod === 'card' && !stripe) {
+            setError('Stripe n\'est pas encore chargé.');
+            setIsProcessing(false);
+            return;
+        }
 
         // Mobile Money Validation
         if (paymentMethod === 'mobile') {
@@ -37,33 +42,25 @@ const Checkout = () => {
                 setIsProcessing(false);
                 return;
             }
-            if (phone === TEST_NUMBERS.MOBILE_FAILURE) {
-                setTimeout(() => {
-                    setError('Paiement Mobile refusé : Solde insuffisant.');
-                    setIsProcessing(false);
-                }, 2000);
-                return;
-            }
-        }
-
-        // Credit Card Validation
-        if (paymentMethod === 'card') {
-            if (cardData.number.replace(/\s/g, '') === TEST_NUMBERS.CARD_FAILURE) {
-                setTimeout(() => {
-                    setError('Paiement par carte refusé : Carte déclinée par la banque.');
-                    setIsProcessing(false);
-                }, 2000);
-                return;
-            }
-            if (cardData.number.length < 16 || cardData.cvc.length < 3) {
-                setError('Veuillez remplir correctement les informations de votre carte Visa/Mastercard.');
-                setIsProcessing(false);
-                return;
-            }
         }
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            let paymentStatus = 'pending';
+
+            if (paymentMethod === 'card') {
+                const cardElement = elements.getElement(CardElement);
+                const { error, paymentMethod: pm } = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: cardElement,
+                });
+
+                if (error) {
+                    setError(error.message);
+                    setIsProcessing(false);
+                    return;
+                }
+                paymentStatus = 'paid'; // In simulation, we mark as paid after PM creation
+            }
 
             const orderData = {
                 userId: currentUser?.uid || 'anonymous',
@@ -75,15 +72,14 @@ const Checkout = () => {
                 total: cartTotal,
                 paymentMethod: paymentMethod,
                 phoneNumber: paymentMethod === 'mobile' ? phone : null,
-                cardLast4: paymentMethod === 'card' ? cardData.number.slice(-4) : null,
-                status: 'pending',
+                status: paymentStatus,
                 createdAt: serverTimestamp()
             };
 
             const docRef = await addDoc(collection(db, 'orders'), orderData);
             const finalOrderData = { id: docRef.id, ...orderData };
 
-            // Trigger Real Notifications (Directly in frontend for EmailJS)
+            // Trigger Real Notifications
             if (paymentMethod === 'card') {
                 await NotificationService.sendOrderEmail(finalOrderData);
             } else if (paymentMethod === 'mobile') {
@@ -97,11 +93,6 @@ const Checkout = () => {
         } finally {
             setIsProcessing(false);
         }
-    };
-
-    const handleCardChange = (e) => {
-        const { name, value } = e.target;
-        setCardData(prev => ({ ...prev, [name]: value }));
     };
 
     if (isSuccess) {
@@ -186,37 +177,22 @@ const Checkout = () => {
                         )}
                         {paymentMethod === 'card' && (
                             <div className="card-info animate-fade">
-                                <p>Paiement sécurisé via Stripe (Visa, Mastercard).</p>
-                                <div className="test-hint">💡 Test Visa : <strong>4242 4242 4242 4242</strong></div>
-                                <div className="card-fields">
-                                    <input
-                                        name="number"
-                                        placeholder="Numéro de carte"
-                                        value={cardData.number}
-                                        onChange={handleCardChange}
-                                        maxLength="16"
-                                        required
+                                <p>Paiement sécurisé via Stripe.</p>
+                                <div className="card-element-container glass">
+                                    <CardElement
+                                        options={{
+                                            style: {
+                                                base: {
+                                                    fontSize: '16px',
+                                                    color: '#ffffff',
+                                                    '::placeholder': { color: '#888' },
+                                                },
+                                                invalid: { color: '#ff6b6b' },
+                                            },
+                                        }}
                                     />
-                                    <div className="row">
-                                        <input
-                                            name="expiry"
-                                            placeholder="MM/YY"
-                                            value={cardData.expiry}
-                                            onChange={handleCardChange}
-                                            maxLength="5"
-                                            required
-                                        />
-                                        <input
-                                            name="cvc"
-                                            type="password"
-                                            placeholder="CVC"
-                                            value={cardData.cvc}
-                                            onChange={handleCardChange}
-                                            maxLength="3"
-                                            required
-                                        />
-                                    </div>
                                 </div>
+                                <div className="test-hint">💡 Carte test : <strong>4242 4242 4242 4242</strong></div>
                             </div>
                         )}
                     </section>
@@ -259,4 +235,10 @@ const Checkout = () => {
     );
 };
 
-export default Checkout;
+const CheckoutWrapper = () => (
+    <Elements stripe={stripePromise}>
+        <Checkout />
+    </Elements>
+);
+
+export default CheckoutWrapper;

@@ -16,8 +16,8 @@ const FullGallery = () => {
 
     const filteredArt = artworks.filter(art => {
         const matchesTheme = filter === 'Tous' || art.theme === filter;
-        const matchesSearch = art.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            art.artist.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = (art.title?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+            (art.artist?.toLowerCase() || "").includes(searchTerm.toLowerCase());
         return matchesTheme && matchesSearch;
     });
 
