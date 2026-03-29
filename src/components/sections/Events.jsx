@@ -5,7 +5,7 @@ const eventsData = [
     {
         id: 1,
         title: "Espoir Kivu en Couleur",
-        date: "Avril 2024",
+        date: "Avril 2026",
         location: "Goma, DRC",
         category: "Exposition",
         description: "Une célébration chromatique de la vie et de la force du peuple du Kivu à travers les yeux de nos artistes."
