@@ -13,7 +13,7 @@ const eventsData = [
     {
         id: 2,
         title: "Résilience Femme du Kivu",
-        date: "Mars 2024",
+        date: "Mars 2025",
         location: "C.C. Wallonie-Bruxelles, Kinshasa",
         category: "Exposition Page",
         description: "Une exposition poignante rendant hommage à la résilience et au courage des femmes du Kivu face aux défis."
